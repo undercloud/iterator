@@ -1,0 +1,74 @@
+require_once __DIR__ . '/StateIterator.php';
+
+class ReverseIterator implements Iterator
+{
+	protected $iterator;
+
+	protected $seekPosition = false;
+
+	protected $cacheKey;
+
+	protected $cacheCurrent;
+
+	public function __construct(Iterator $iterator)
+	{
+		$this->iterator = new StateIterator($iterator);
+	}
+
+	protected function traverse($fromNext = false)
+	{
+		$this->iterator->rewind();
+		foreach($this->iterator as $key => $current){
+			if (true === $fromNext) {
+				if ($this->seekPosition - 1 === 0) {
+					$this->cacheKey = $key;
+					$this->cacheCurrent = $current;
+				}
+
+				if ($this->seekPosition - 1 === $this->iterator->index()) {
+					break;
+				}
+			} else {
+				if ($this->iterator->isLast()) {
+					$this->seekPosition = $this->iterator->index();
+					$this->cacheKey = $key;
+					$this->cacheCurrent = $current;
+				}
+			}
+		}
+	}
+
+	public function rewind()
+	{
+		$this->seekPosition = false;
+		$this->traverse();
+	}
+
+	public function next()
+	{
+		--$this->seekPosition;
+		$this->traverse(true);
+	}
+	
+	public function current()
+	{
+		if ($this->iterator->isLast() or 0 === $this->seekPosition) {
+			return $this->cacheCurrent;
+		}
+
+		return $this->iterator->current();
+	}
+
+	public function key()
+	{
+		if ($this->iterator->isLast() or 0 === $this->seekPosition) {
+			return $this->cacheKey;
+		}
+		return $this->iterator->key();
+	}
+
+	public function valid()
+	{
+		return ($this->seekPosition !== false and $this->seekPosition >= 0);
+	}
+}

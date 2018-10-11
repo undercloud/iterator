@@ -81,9 +81,7 @@ class StateIterator implements SeekableIterator
 		$this->cacheKey = $this->iterator->key();
 		$this->cacheValid = $this->iterator->valid();
 		
-		if (!($this->iterator instanceof NoRewindIterator)) {
-			$this->iterator->next();	
-		}
+		$this->iterator->next();
 
 		if (false !== $this->position) {
 			for ($i = 0; $i < $this->position; $i++) {

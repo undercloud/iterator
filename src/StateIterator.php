@@ -1,9 +1,18 @@
 <?php
-error_reporting(-1);
-ini_set('display_errors', 'On');
+namespace Undercloud\Iterator;
+
 /**
- * 
+ * SPL Iterator extends
+ *
+ * @package  Iterator
+ * @author   undercloud <lodashes@gmail.com>
+ * @license  https://opensource.org/licenses/MIT MIT
+ * @link     http://github.com/undercloud/iterator
  */
+
+use Traversable;
+use IteratorAggregate;
+
 class StateIterator implements SeekableIterator
 {
 	/**
@@ -37,12 +46,15 @@ class StateIterator implements SeekableIterator
 	private $position = false;
 
 	/**
-	 * @param Iterator $iterator instance
+	 * @param Traversable $traversable instance
 	 */
-	public function __construct(Iterator $iterator)
+	public function __construct(Traversable $traversable)
 	{
-		$this->iterator = $iterator;
-		$this->rewind();
+		$this->iterator = (
+			$traversable instanceof IteratorAggregate
+			? $traversable->getIterator()
+			: $traversable
+		);
 	}
 
 	/**
@@ -94,10 +106,9 @@ class StateIterator implements SeekableIterator
 				$this->valid();
 				$this->next();
 			}
-		}
-	
 
-		$this->position = false;
+			$this->position = false;
+		}
 	}
 
 	/**
@@ -216,30 +227,4 @@ class StateIterator implements SeekableIterator
 
 		return ((($this->index + 1) % (int) $divider) == 0);
 	}
-}
-
-$s = new StateIterator(
-	new LimitIterator(
-		new ArrayIterator(
-			['foo' => 'bar','bar' => 'baz','zuz' => 'xyz','laz' => 'suz']
-		),0,2
-	)
-);
-
-//$s->seek(3);
-
-foreach($s as $k => $v){
-	$p = print_r([
-		'index' => $s->index(),
-		'key' => $k,
-		'value' => $v,
-		'isFirst' => $s->isFirst(),
-		'isLast' => $s->isLast(),
-		'isMiddle' => $s->isMiddle(),
-		'isOdd' => $s->isOdd(),
-		'isEven' => $s->isEven(),
-		'isDivisible3' => $s->isDivisible(3)
-	],true);
-
-	echo str_replace(['   ',PHP_EOL], '', $p) . PHP_EOL;
 }
